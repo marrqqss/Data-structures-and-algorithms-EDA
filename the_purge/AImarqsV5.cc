@@ -5,7 +5,7 @@
  * Write the name of your player and save this file
  * with the same name and .cc extension.
  */
-#define PLAYER_NAME marqs
+#define PLAYER_NAME marqsV5
 
 
 struct PLAYER_NAME : public Player {
@@ -227,7 +227,7 @@ struct PLAYER_NAME : public Player {
       //cerr << "VISITADO" << endl;
       return false;
     }
-    if (cell(cell_pos).id != -1 and citizen(cell(cell_pos).id).player == me())
+    if (cell(cell_pos).id != -1 and (citizen(cell(cell_pos).id).player == me() or citizen(cell(cell_pos).id).type != enemy))
     {
       //cerr << "POS OCUPADA POR CITIZEN" << endl;
       return false;
@@ -457,11 +457,11 @@ struct PLAYER_NAME : public Player {
       for (int i = 0; i < int(my_warriors.size()); ++i) //WARRIORS
       {
         Pos my_warrior_pos = citizen(my_warriors[i]).pos;
-        if (citizen(my_warriors[i]).life >= 40) //SEEK FOR ENEMY BUILDER
+        if (citizen(my_warriors[i]).life >= 30 and citizen(my_warriors[i]).weapon == Bazooka) //SEEK FOR FIGHT
         {
           vector<Pos> enemy_path;
           Pos nearest_enemy = enemy_bfs(my_warrior_pos, enemy_path, Builder);
-          if (nearest_enemy.i != -1 and nearest_enemy.j != -1)
+          if (nearest_enemy.i != -1 and nearest_enemy.j != -1) //SEEK FOR BUILDER
           {
             //cerr << "ENEMY FOUND " << my_warrior_pos << endl;
             Dir direction;
@@ -472,6 +472,23 @@ struct PLAYER_NAME : public Player {
             else direction = Right;
             //cerr << direction << endl;
             move(my_warriors[i], direction);
+          }
+          else if (citizen(my_warriors[i]).life >= 80)//SEEK FOR WARRIOR
+          {
+            vector<Pos> enemy_path;
+            Pos nearest_enemy = enemy_bfs(my_warrior_pos, enemy_path, Warrior);
+            if (nearest_enemy.i != -1 and nearest_enemy.j != -1) //SEEK FOR WARRIOR
+            {
+              //cerr << "ENEMY FOUND " << my_warrior_pos << endl;
+              Dir direction;
+              int n = enemy_path.size() - 1;
+              if (enemy_path[n].i > my_warrior_pos.i) direction = Down;
+              else if (enemy_path[n].i < my_warrior_pos.i) direction = Up;
+              else if (enemy_path[n].j < my_warrior_pos.j) direction = Left;
+              else direction = Right;
+              //cerr << direction << endl;
+              move(my_warriors[i], direction);
+            }
           }
         }
         else if (citizen(my_warriors[i]).life != citizen_ini_life(Warrior)) //SEEK FOR HEALING
@@ -489,19 +506,34 @@ struct PLAYER_NAME : public Player {
             move(my_warriors[i], direction);
           }
         }
-        else //SEEK FOR MONEY
+        else if (citizen(my_warriors[i]).weapon != Bazooka)//SEEK FOR WEAPONS or MONEY
         {
-          vector<Pos> money_path;
-          Pos nearest_money = item_bfs(my_warrior_pos, money_path, Money);
-          if (nearest_money.i != -1 and nearest_money.j != -1)
+          vector<Pos> weapon_path; 
+          Pos nearest_weapon = weapon_bfs(my_warrior_pos, citizen(my_warriors[i]).weapon, weapon_path);
+          if (nearest_weapon.i != -1 and nearest_weapon.j != -1)
           {
             Dir direction;
-            int n = money_path.size() - 1;
-            if (money_path[n].i > my_warrior_pos.i) direction = Down;
-            else if (money_path[n].i < my_warrior_pos.i) direction = Up;
-            else if (money_path[n].j < my_warrior_pos.j) direction = Left;
+            int n = weapon_path.size() - 1;
+            if (weapon_path[n].i > my_warrior_pos.i) direction = Down;
+            else if (weapon_path[n].i < my_warrior_pos.i) direction = Up;
+            else if (weapon_path[n].j < my_warrior_pos.j) direction = Left;
             else direction = Right;
             move(my_warriors[i], direction);
+          }
+          else //SEEK FOR MONEY
+          {
+            vector<Pos> money_path;
+            Pos nearest_money = item_bfs(my_warrior_pos, money_path, Money);
+            if (nearest_money.i != -1 and nearest_money.j != -1)
+            {
+              Dir direction;
+              int n = money_path.size() - 1;
+              if (money_path[n].i > my_warrior_pos.i) direction = Down;
+              else if (money_path[n].i < my_warrior_pos.i) direction = Up;
+              else if (money_path[n].j < my_warrior_pos.j) direction = Left;
+              else direction = Right;
+              move(my_warriors[i], direction);
+            }
           }
         }
       }
