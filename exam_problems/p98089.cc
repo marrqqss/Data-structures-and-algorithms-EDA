@@ -4,25 +4,31 @@ using namespace std;
 
 int n;
 vector<string> names;
-vector<string> result;
 vector<vector<int>> dislikes;
 vector<bool> visited;
 
 int friends(int index_result, int i, int sum)
 {
-    if (index_result == n) return sum;
+    int min = -1;
+    if (index_result >= n - 1) min = sum;
     else
     {
-        int max = 0;
+        int new_sum = -1;
+        visited[i] = true;
         for (int k = 0; k < n; ++k)
         {
-            visited[i] = true;
-            if (k != i)
+            if (k != i and not visited[k] and (min == -1 or sum + dislikes[i][k] < min))
             {
-                int new_sum = friends(index_result+1, )
+                new_sum = friends(index_result+1, k, sum + dislikes[i][k]);
+                if (min == -1 or new_sum < min) 
+                {
+                    min = new_sum;
+                }
             }
         }
+        visited[i] = false;
     }
+    return min;
 }
 
 int main()
@@ -30,7 +36,6 @@ int main()
     while (cin >> n)
     {
         names = vector<string>(n);
-        result = vector<string>(n);
         dislikes = vector<vector<int>>(n, vector<int>(n));
         visited = vector<bool>(n, false);
         for (int i = 0; i < n; ++i) cin >> names[i];
@@ -41,7 +46,7 @@ int main()
                 cin >> dislikes[i][j];
             }
         }
-        cout << friends(0, 0, 0)
-
+        cout << friends(0, 0, 0) << endl;
+        
     }
 }
